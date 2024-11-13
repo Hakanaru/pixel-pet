@@ -4,16 +4,20 @@
   <meta charset="UTF-8" />
   <title>Pixel Pet</title>
   <style>
-    /* Basic styling for the app */
-    html, body {
+    /* Reset and basic styling */
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+    html, body {
       width: 100%;
       height: 100%;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow: hidden; /* Prevent scrolling */
+      background-color: #f0f8ff;
     }
     #root {
       width: 100%;
@@ -22,30 +26,44 @@
     .app-container {
       width: 100%;
       height: 100%;
-      box-sizing: border-box;
       position: relative;
-      background-color: #f0f8ff;
+    }
+    .pet-name-input {
+      position: absolute;
+      top: 2%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      padding: 1em;
+      font-size: 1.2em;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      text-align: center;
+      background: transparent;
+      color: #333;
     }
     .controls {
       position: absolute;
-      bottom: 0;
-      width: 100%;
+      bottom: 2%;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 8px;
+      gap: 1em;
       background-color: rgba(255, 255, 255, 0.8);
-      padding: 8px;
+      padding: 1em;
+      border-radius: 10px;
     }
     .controls button {
-      padding: 10px 16px;
+      padding: 0.8em 1.2em;
       border: none;
       background-color: #007BFF;
       color: white;
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 1em;
       transition: background-color 0.3s;
-      font-size: 14px;
     }
     .controls button:hover {
       background-color: #0056b3;
@@ -53,16 +71,6 @@
     .controls button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
-    }
-    .pet-name-input {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
-      border: none;
-      border-bottom: 1px solid #ccc;
-      font-size: 16px;
     }
     /* Mood-based background colors */
     body.happy {
@@ -77,6 +85,16 @@
     body.energetic {
       background-color: #fff0e0;
     }
+    /* Responsive styling */
+    @media (max-width: 600px) {
+      .pet-name-input {
+        font-size: 1em;
+      }
+      .controls button {
+        font-size: 0.9em;
+        padding: 0.6em 1em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -90,14 +108,14 @@
   <script type="text/babel">
     function PixelPet() {
       const { useState, useEffect, useRef } = React;
-      const [seed, setSeed] = useState(1);
+      const [seed, setSeed] = useState(Math.random() * 10000);
       const [mood, setMood] = useState('happy');
       const [evolutionStage, setEvolutionStage] = useState(0);
       const [name, setName] = useState('');
       const [species] = useState(Math.floor(Math.random() * 3));
       const [animation, setAnimation] = useState('wander');
-      const [position, setPosition] = useState({ x: 0, y: 0 });
-      const [direction, setDirection] = useState(1);
+      const [position, setPosition] = useState({ x: 50, y: 50 });
+      const [direction, setDirection] = useState({ x: 1, y: 1 });
       const [colorTheme, setColorTheme] = useState(0);
       const [soundEnabled, setSoundEnabled] = useState(false);
 
@@ -125,21 +143,29 @@
         let animationFrame;
         const movePet = () => {
           setPosition(pos => {
-            const containerWidth = containerRef.current.offsetWidth;
-            const containerHeight = containerRef.current.offsetHeight;
-            let newX = pos.x;
-            let newY = pos.y;
+            const containerWidth = containerRef.current.offsetWidth - 100;
+            const containerHeight = containerRef.current.offsetHeight - 100;
+            let newX = pos.x + direction.x * (animation === 'run' ? 4 : 1);
+            let newY = pos.y + direction.y * (animation === 'run' ? 4 : 1);
 
-            if (animation === 'wander') {
-              newX += direction * 1;
-              if (newX > containerWidth - 50 || newX < 0) {
-                setDirection(d => -d);
-              }
-            } else if (animation === 'run') {
-              newX += direction * 4;
-              if (newX > containerWidth - 50 || newX < 0) {
-                setDirection(d => -d);
-              }
+            // Check horizontal boundaries
+            if (newX <= 0 || newX >= containerWidth) {
+              setDirection(dir => ({ ...dir, x: dir.x * -1 }));
+              newX = Math.max(0, Math.min(newX, containerWidth));
+            }
+
+            // Check vertical boundaries
+            if (newY <= 0 || newY >= containerHeight) {
+              setDirection(dir => ({ ...dir, y: dir.y * -1 }));
+              newY = Math.max(0, Math.min(newY, containerHeight));
+            }
+
+            // Randomly change direction to simulate wandering
+            if (animation === 'wander' && Math.random() < 0.01) {
+              setDirection({
+                x: Math.random() < 0.5 ? -1 : 1,
+                y: Math.random() < 0.5 ? -1 : 1,
+              });
             }
 
             return { x: newX, y: newY };
@@ -148,7 +174,9 @@
           animationFrame = requestAnimationFrame(movePet);
         };
 
-        animationFrame = requestAnimationFrame(movePet);
+        if (animation !== 'idle') {
+          animationFrame = requestAnimationFrame(movePet);
+        }
 
         return () => cancelAnimationFrame(animationFrame);
       }, [animation, direction]);
@@ -215,28 +243,30 @@
           hasTail: evolutionStage >= 1 && random() > 0.5,
           hasWings: evolutionStage >= 2 && random() > 0.5,
           hasHorns: evolutionStage >= 2 && random() > 0.5,
-          earType: evolutionStage >= 1 ? Math.floor(random() * 3) : -1,
-          eyeType: Math.floor(random() * 3),
-          mouthType: Math.floor(random() * 3),
-          accessory: random() > 0.7 ? Math.floor(random() * 5) : -1,
-          pattern: random() > 0.5,
+          earType: evolutionStage >= 1 ? Math.floor(random() * 4) : -1,
+          eyeType: Math.floor(random() * 4),
+          mouthType: Math.floor(random() * 4),
+          accessory: random() > 0.6 ? Math.floor(random() * 6) : -1,
+          pattern: random() > 0.4,
         };
 
         // Generate body shape
-        const bodyShapes = ['oval', 'round', 'square', 'blob', 'triangle'];
+        const bodyShapes = ['oval', 'round', 'square', 'blob', 'triangle', 'star', 'diamond', 'heart'];
         const bodyType = evolutionStage === 0 ? 'egg' : bodyShapes[Math.floor(random() * bodyShapes.length)];
 
         // Draw body
         for (let y = 0; y < bodyHeight; y++) {
           for (let x = 0; x < bodyWidth; x++) {
             let drawPixel = false;
+            const nx = x - bodyWidth / 2;
+            const ny = y - bodyHeight / 2;
             switch(bodyType) {
               case 'egg':
               case 'oval':
-                drawPixel = Math.pow((x - bodyWidth / 2) / (bodyWidth / 2), 2) + Math.pow((y - bodyHeight / 2) / (bodyHeight / 2), 2) <= 1;
+                drawPixel = (nx * nx) / ((bodyWidth / 2) * (bodyWidth / 2)) + (ny * ny) / ((bodyHeight / 2) * (bodyHeight / 2)) <= 1;
                 break;
               case 'round':
-                drawPixel = Math.pow((x - bodyWidth / 2) / (bodyWidth / 2), 2) + Math.pow((y - bodyHeight / 2) / (bodyHeight / 2), 2) <= 0.8;
+                drawPixel = (nx * nx + ny * ny) <= (bodyWidth / 2) * (bodyHeight / 2) * 0.8;
                 break;
               case 'square':
                 drawPixel = true;
@@ -246,6 +276,17 @@
                 break;
               case 'triangle':
                 drawPixel = y >= x * (bodyHeight / bodyWidth) && y >= (bodyWidth - x - 1) * (bodyHeight / bodyWidth);
+                break;
+              case 'star':
+                drawPixel = Math.abs(nx * ny) < (bodyWidth * bodyHeight) / 10;
+                break;
+              case 'diamond':
+                drawPixel = Math.abs(nx) + Math.abs(ny) <= bodyWidth / 2;
+                break;
+              case 'heart':
+                const a = nx / (bodyWidth / 2);
+                const b = ny / (bodyHeight / 2);
+                drawPixel = (a * a + b * b - 1) ** 3 - a * a * b * b * b <= 0;
                 break;
             }
             if (drawPixel) {
@@ -278,10 +319,16 @@
               safeSetGrid(grid, eyeX1 - 1, faceY, 2);
               safeSetGrid(grid, eyeX2 + 1, faceY, 2);
               break;
+            case 3: // Closed eyes
+              safeSetGrid(grid, eyeX1, faceY, 2);
+              safeSetGrid(grid, eyeX1 + 1, faceY, 2);
+              safeSetGrid(grid, eyeX2 - 1, faceY, 2);
+              safeSetGrid(grid, eyeX2, faceY, 2);
+              break;
           }
 
           // Mouth
-          const mouthY = faceY + 3;
+          const mouthY = faceY + 4;
           switch(features.mouthType) {
             case 0: // Smile
               safeSetGrid(grid, centerX - 1, mouthY, 3);
@@ -298,24 +345,33 @@
               safeSetGrid(grid, centerX, mouthY, 3);
               safeSetGrid(grid, centerX + 1, mouthY, 3);
               break;
+            case 3: // O mouth
+              safeSetGrid(grid, centerX, mouthY, 3);
+              safeSetGrid(grid, centerX, mouthY + 1, 3);
+              break;
           }
 
           // Ears
           const earY = bodyStartY - 2;
-          if (features.earType === 0) {
-            // Pointy ears
-            safeSetGrid(grid, centerX - 3, earY, 1);
-            safeSetGrid(grid, centerX + 3, earY, 1);
-          } else if (features.earType === 1) {
-            // Round ears
-            safeSetGrid(grid, centerX - 3, earY + 1, 1);
-            safeSetGrid(grid, centerX + 3, earY + 1, 1);
-          } else if (features.earType === 2) {
-            // Long ears
-            safeSetGrid(grid, centerX - 2, earY - 1, 1);
-            safeSetGrid(grid, centerX + 2, earY - 1, 1);
-            safeSetGrid(grid, centerX - 2, earY, 1);
-            safeSetGrid(grid, centerX + 2, earY, 1);
+          switch(features.earType) {
+            case 0: // Pointy ears
+              safeSetGrid(grid, centerX - 3, earY, 1);
+              safeSetGrid(grid, centerX + 3, earY, 1);
+              break;
+            case 1: // Round ears
+              safeSetGrid(grid, centerX - 3, earY + 1, 1);
+              safeSetGrid(grid, centerX + 3, earY + 1, 1);
+              break;
+            case 2: // Long ears
+              safeSetGrid(grid, centerX - 2, earY - 1, 1);
+              safeSetGrid(grid, centerX + 2, earY - 1, 1);
+              safeSetGrid(grid, centerX - 2, earY, 1);
+              safeSetGrid(grid, centerX + 2, earY, 1);
+              break;
+            case 3: // Antenna
+              safeSetGrid(grid, centerX, earY - 2, 1);
+              safeSetGrid(grid, centerX, earY - 1, 1);
+              break;
           }
 
           // Horns
@@ -335,7 +391,7 @@
           // Tail
           if (features.hasTail) {
             for (let i = 0; i < 4; i++) {
-              safeSetGrid(grid, centerX + Math.floor(bodyWidth / 2) + i, bodyStartY + bodyHeight - 2 - i, 1);
+              safeSetGrid(grid, centerX, bodyStartY + bodyHeight + i, 1);
             }
           }
 
@@ -344,11 +400,9 @@
             const accessoryY = bodyStartY - 4;
             switch(features.accessory) {
               case 0: // Hat
-                safeSetGrid(grid, centerX - 2, accessoryY, 4);
-                safeSetGrid(grid, centerX - 1, accessoryY, 4);
-                safeSetGrid(grid, centerX, accessoryY, 4);
-                safeSetGrid(grid, centerX + 1, accessoryY, 4);
-                safeSetGrid(grid, centerX + 2, accessoryY, 4);
+                for (let x = -2; x <= 2; x++) {
+                  safeSetGrid(grid, centerX + x, accessoryY, 4);
+                }
                 safeSetGrid(grid, centerX, accessoryY - 1, 4);
                 break;
               case 1: // Bow
@@ -357,10 +411,9 @@
                 safeSetGrid(grid, centerX, accessoryY + 1, 4);
                 break;
               case 2: // Glasses
-                safeSetGrid(grid, eyeX1 - 1, faceY, 4);
-                safeSetGrid(grid, eyeX1, faceY, 4);
-                safeSetGrid(grid, eyeX2, faceY, 4);
-                safeSetGrid(grid, eyeX2 + 1, faceY, 4);
+                for (let x = eyeX1 - 1; x <= eyeX2 + 1; x++) {
+                  safeSetGrid(grid, x, faceY, 4);
+                }
                 safeSetGrid(grid, centerX, faceY, 4);
                 break;
               case 3: // Scarf
@@ -373,12 +426,18 @@
                 safeSetGrid(grid, centerX, faceY + 6, 4);
                 safeSetGrid(grid, centerX + 1, faceY + 6, 4);
                 break;
+              case 5: // Flower
+                safeSetGrid(grid, centerX - 3, accessoryY + 1, 4);
+                safeSetGrid(grid, centerX - 3, accessoryY, 4);
+                safeSetGrid(grid, centerX - 4, accessoryY + 1, 4);
+                safeSetGrid(grid, centerX - 2, accessoryY + 1, 4);
+                break;
             }
           }
 
           // Patterns or spots
           if (features.pattern) {
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
               const x = bodyStartX + Math.floor(random() * bodyWidth);
               const y = bodyStartY + Math.floor(random() * bodyHeight);
               if (safeGetGrid(grid, x, y) === 1) {
@@ -397,7 +456,7 @@
               position: 'absolute',
               left: position.x,
               top: position.y,
-              transform: direction === -1 ? 'scaleX(-1)' : 'scaleX(1)',
+              transform: direction.x === -1 ? 'scaleX(-1)' : 'scaleX(1)',
             }}
           >
             {grid.map((row, y) =>
