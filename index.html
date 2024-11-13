@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Pixel Pet</title>
+  <style>
+    /* Basic styling for the app */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      background-color: #f0f8ff;
+    }
+    .app-container {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 16px;
+      max-width: 400px;
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    .app-container h2 {
+      text-align: center;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .controls button {
+      padding: 10px 16px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 14px;
+    }
+    .controls button:hover {
+      background-color: #0056b3;
+    }
+    .controls button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .pet-name-input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    .animation-state {
+      text-align: center;
+      margin-top: 8px;
+      font-style: italic;
+      color: #555;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: max-content;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; /* Position above the button */
+      left: 50%;
+      margin-left: -60px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    /* Mood-based background colors */
+    body.happy {
+      background-color: #e0ffe0;
+    }
+    body.sad {
+      background-color: #ffe0e0;
+    }
+    body.sleepy {
+      background-color: #e0e0ff;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <!-- Include React and Babel -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <!-- Include Babel for JSX transpilation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Our script -->
+  <script type="text/babel">
+    function PixelPet() {
+      const { useState, useEffect } = React;
+      const [seed, setSeed] = useState(1);
+      const [mood, setMood] = useState('happy');
+      const [evolutionStage, setEvolutionStage] = useState(0);
+      const [name, setName] = useState('');
+      const [species] = useState(Math.floor(Math.random() * 3));
+      const [animation, setAnimation] = useState('idle');
+      const [position, setPosition] = useState(0);
+      const [colorTheme, setColorTheme] = useState(0);
+      const [soundEnabled, setSoundEnabled] = useState(false);
+
+      const evolutionStages = ['Egg', 'Baby', 'Teen', 'Adult'];
+      const colorThemes = ['Classic', 'Pastel', 'Neon', 'Monochrome'];
+
+      useEffect(() => {
+        const animationInterval = setInterval(() => {
+          setPosition(prev => (prev + 1) % 60);
+        }, 100);
+
+        return () => clearInterval(animationInterval);
+      }, []);
+
+      useEffect(() => {
+        document.body.className = mood;
+      }, [mood]);
+
+      useEffect(() => {
+        const moodAnimations = {
+          happy: 'bounce',
+          sad: 'idle',
+          sleepy: 'shake',
+        };
+        setAnimation(moodAnimations[mood] || 'idle');
+      }, [mood]);
+
+      const safeSetGrid = (grid, x, y, value) => {
+        if (y >= 0 && y < grid.length && x >= 0 && x < grid[0].length) {
+          grid[y][x] = value;
+        }
+      };
+
+      const safeGetGrid = (grid, x, y) => {
+        if (y >= 0 && y < grid.length && x >= 0 && x < grid[0].length) {
+          return grid[y][x];
+        }
+        return null;
+      };
+
+      const playSound = (type) => {
+        if (!soundEnabled) return;
+        const sounds = {
+          happy: 'https://example.com/happy.mp3',
+          sad: 'https://example.com/sad.mp3',
+          sleepy: 'https://example.com/sleepy.mp3',
+        };
+        const audio = new Audio(sounds[type]);
+        audio.play();
+      };
+
+      const generatePet = (cellSize = 4) => {
+        const width = 32;
+        const height = 32;
+        const grid = Array(height).fill().map(() => Array(width).fill(0));
+
+        let currentSeed = seed;
+        const random = () => {
+          const x = Math.sin(currentSeed++) * 10000;
+          return x - Math.floor(x);
+        };
+
+        const getColors = () => {
+          const hue = (colorTheme * 90 + random() * 60) % 360;
+          const saturation = colorTheme === 3 ? '10%' : '70%';
+          return {
+            main: `hsl(${hue}, ${saturation}, ${50 + random() * 20}%)`,
+            accent: `hsl(${(hue + 30) % 360}, ${saturation}, ${50 + random() * 20}%)`,
+            detail: `hsl(${(hue + 60) % 360}, ${saturation}, ${50 + random() * 20}%)`
+          };
+        };
+
+        const colors = getColors();
+
+        let animationOffsetX = 0;
+        let animationOffsetY = 0;
+        switch (animation) {
+          case 'bounce':
+            animationOffsetY = Math.sin(position * Math.PI / 30) * 2;
+            break;
+          case 'shake':
+            animationOffsetX = (Math.sin(position * Math.PI / 5)) * 1;
+            break;
+          default:
+            animationOffsetY = 0;
+        }
+
+        const centerX = Math.floor(width / 2) + Math.round(animationOffsetX);
+        const centerY = Math.floor(height / 2) + Math.round(animationOffsetY);
+
+        const bodySize = 0.5 + (evolutionStage * 0.1);
+        const bodyHeight = Math.floor(height * (bodySize + random() * 0.1));
+        const bodyWidth = Math.floor(width * (bodySize + random() * 0.1));
+        const bodyStartY = centerY - Math.floor(bodyHeight / 2);
+        const bodyStartX = centerX - Math.floor(bodyWidth / 2);
+
+        // Randomly generated features
+        const features = {
+          hasTail: evolutionStage >= 2 && random() > 0.5,
+          hasWings: evolutionStage >= 2 && random() > 0.5,
+          hasHorns: evolutionStage >= 2 && random() > 0.5,
+          earType: evolutionStage >= 1 ? Math.floor(random() * 3) : -1,
+        };
+
+        // Generate body shape
+        const bodyShapes = ['oval', 'round', 'square', 'blob'];
+        const bodyType = evolutionStage === 0 ? 'egg' : bodyShapes[Math.floor(random() * bodyShapes.length)];
+
+        // Draw body
+        for (let y = 0; y < bodyHeight; y++) {
+          for (let x = 0; x < bodyWidth; x++) {
+            let drawPixel = false;
+            const normalizedY = y / bodyHeight;
+            const normalizedX = x / bodyWidth;
+            switch(bodyType) {
+              case 'egg':
+              case 'oval':
+                drawPixel = Math.pow((x - bodyWidth / 2) / (bodyWidth / 2), 2) + Math.pow((y - bodyHeight / 2) / (bodyHeight / 2), 2) <= 1;
+                break;
+              case 'round':
+                drawPixel = Math.pow((x - bodyWidth / 2) / (bodyWidth / 2), 2) + Math.pow((y - bodyHeight / 2) / (bodyHeight / 2), 2) <= 0.8;
+                break;
+              case 'square':
+                drawPixel = true;
+                break;
+              case 'blob':
+                drawPixel = random() > 0.2;
+                break;
+            }
+            if (drawPixel) {
+              safeSetGrid(grid, bodyStartX + x, bodyStartY + y, 1);
+            }
+          }
+        }
+
+        // Egg stage has no face
+        if (evolutionStage > 0) {
+          // Draw face
+          const faceY = bodyStartY + Math.floor(bodyHeight * 0.3);
+          const eyeSpacing = 2 + evolutionStage;
+          const eyeX1 = centerX - eyeSpacing;
+          const eyeX2 = centerX + eyeSpacing;
+
+          if (animation === 'sleepy') {
+            safeSetGrid(grid, eyeX1, faceY, 2);
+            safeSetGrid(grid, eyeX2, faceY, 2);
+            safeSetGrid(grid, eyeX1, faceY + 1, 2);
+            safeSetGrid(grid, eyeX2, faceY + 1, 2);
+          } else if (mood === 'happy') {
+            safeSetGrid(grid, eyeX1, faceY, 2);
+            safeSetGrid(grid, eyeX2, faceY, 2);
+            safeSetGrid(grid, eyeX1, faceY - 1, 2);
+            safeSetGrid(grid, eyeX2, faceY - 1, 2);
+          } else {
+            safeSetGrid(grid, eyeX1, faceY, 2);
+            safeSetGrid(grid, eyeX2, faceY, 2);
+          }
+
+          // Mouth
+          const mouthY = faceY + 3;
+          if (mood === 'happy') {
+            safeSetGrid(grid, centerX, mouthY, 3);
+            safeSetGrid(grid, centerX - 1, mouthY - 1, 3);
+            safeSetGrid(grid, centerX + 1, mouthY - 1, 3);
+          } else if (mood === 'sad') {
+            safeSetGrid(grid, centerX, mouthY, 3);
+            safeSetGrid(grid, centerX - 1, mouthY + 1, 3);
+            safeSetGrid(grid, centerX + 1, mouthY + 1, 3);
+          } else {
+            safeSetGrid(grid, centerX - 1, mouthY, 3);
+            safeSetGrid(grid, centerX, mouthY, 3);
+            safeSetGrid(grid, centerX + 1, mouthY, 3);
+          }
+
+          // Ears
+          const earY = bodyStartY - 2;
+          if (features.earType === 0) {
+            // Pointy ears
+            safeSetGrid(grid, centerX - 3, earY, 1);
+            safeSetGrid(grid, centerX + 3, earY, 1);
+          } else if (features.earType === 1) {
+            // Round ears
+            safeSetGrid(grid, centerX - 3, earY + 1, 1);
+            safeSetGrid(grid, centerX + 3, earY + 1, 1);
+          } else if (features.earType === 2) {
+            // Long ears
+            safeSetGrid(grid, centerX - 2, earY - 1, 1);
+            safeSetGrid(grid, centerX + 2, earY - 1, 1);
+            safeSetGrid(grid, centerX - 2, earY, 1);
+            safeSetGrid(grid, centerX + 2, earY, 1);
+          }
+
+          // Horns
+          if (features.hasHorns) {
+            safeSetGrid(grid, centerX - 1, earY - 2, 1);
+            safeSetGrid(grid, centerX + 1, earY - 2, 1);
+          }
+
+          // Wings
+          if (features.hasWings) {
+            for (let i = 0; i < 3; i++) {
+              safeSetGrid(grid, centerX - Math.floor(bodyWidth / 2) - i, centerY + i, 1);
+              safeSetGrid(grid, centerX + Math.floor(bodyWidth / 2) + i, centerY + i, 1);
+            }
+          }
+
+          // Tail
+          if (features.hasTail) {
+            for (let i = 0; i < 4; i++) {
+              safeSetGrid(grid, centerX, bodyStartY + bodyHeight + i, 1);
+            }
+          }
+        }
+
+        // Add accessories if needed (you can customize this section)
+
+        return (
+          <svg viewBox={`0 0 ${width * cellSize} ${height * cellSize}`} width={width * cellSize} height={height * cellSize}>
+            {grid.map((row, y) =>
+              row.map((cell, x) =>
+                cell ? (
+                  <rect
+                    key={`${x}-${y}`}
+                    x={x * cellSize}
+                    y={y * cellSize}
+                    width={cellSize}
+                    height={cellSize}
+                    fill={
+                      cell === 1 ? colors.main :
+                      cell === 2 ? 'black' :
+                      cell === 3 ? 'black' :
+                      colors.detail
+                    }
+                  />
+                ) : null
+              )
+            )}
+          </svg>
+        );
+      };
+
+      return (
+        <div className="app-container">
+          <h2>{name || 'Unnamed'} - {evolutionStages[evolutionStage]}</h2>
+          {generatePet()}
+          <input
+            placeholder="Name your pet"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="pet-name-input"
+          />
+          <div className="controls">
+            <div className="tooltip">
+              <button onClick={() => { setSeed(Math.random() * 10000); playSound('happy'); }}>
+                New Pet
+              </button>
+              <span className="tooltiptext">Generate a new pet</span>
+            </div>
+            <div className="tooltip">
+              <button onClick={() => { setMood(m => m === 'happy' ? 'sad' : m === 'sad' ? 'sleepy' : 'happy'); playSound(mood); }}>
+                Mood
+              </button>
+              <span className="tooltiptext">Change pet's mood</span>
+            </div>
+            <div className="tooltip">
+              <button
+                onClick={() => { setEvolutionStage(prev => Math.min(prev + 1, evolutionStages.length - 1)); playSound('happy'); }}
+                disabled={evolutionStage === evolutionStages.length - 1}
+              >
+                Evolve
+              </button>
+              <span className="tooltiptext">Evolve pet</span>
+            </div>
+            <div className="tooltip">
+              <button
+                onClick={() => { setEvolutionStage(prev => Math.max(prev - 1, 0)); playSound('sad'); }}
+                disabled={evolutionStage === 0}
+              >
+                Devolve
+              </button>
+              <span className="tooltiptext">Devolve pet</span>
+            </div>
+            <div className="tooltip">
+              <button onClick={() => setColorTheme((colorTheme + 1) % colorThemes.length)}>
+                {colorThemes[colorTheme]}
+              </button>
+              <span className="tooltiptext">Change color theme</span>
+            </div>
+            <div className="tooltip">
+              <button onClick={() => setSoundEnabled(!soundEnabled)}>
+                {soundEnabled ? 'Sound On' : 'Sound Off'}
+              </button>
+              <span className="tooltiptext">Toggle sound</span>
+            </div>
+          </div>
+          <div className="animation-state">
+            {animation.charAt(0).toUpperCase() + animation.slice(1)}
+          </div>
+        </div>
+      );
+    }
+
+    // Render the component
+    ReactDOM.render(<PixelPet />, document.getElementById('root'));
+  </script>
+</body>
+</html>
