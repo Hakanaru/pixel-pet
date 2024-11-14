@@ -147,12 +147,19 @@
       const [colorTheme, setColorTheme] = useState(0);
       const [soundEnabled, setSoundEnabled] = useState(false);
       const [showZzz, setShowZzz] = useState(false);
+      const [isDragging, setIsDragging] = useState(false);
+      const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
       const evolutionStages = ['Egg', 'Baby', 'Teen', 'Adult'];
       const colorThemes = ['Classic', 'Pastel', 'Neon', 'Monochrome'];
       const moods = ['happy', 'sad', 'sleepy', 'energetic'];
 
       const containerRef = useRef(null);
+      const petRef = useRef(null);
+
+      const cellSize = 8; // Defined here to use in multiple places
+      const petWidth = 32 * cellSize; // Pet's width in pixels
+      const petHeight = 32 * cellSize; // Pet's height in pixels
 
       useEffect(() => {
         document.body.className = mood;
@@ -174,22 +181,29 @@
       useEffect(() => {
         let animationFrame;
         const movePet = () => {
-          setPosition(pos => {
-            const containerWidth = containerRef.current.offsetWidth - 100;
-            const containerHeight = containerRef.current.offsetHeight - 100;
+          setPosition((pos) => {
+            const containerWidth = containerRef.current.offsetWidth;
+            const containerHeight = containerRef.current.offsetHeight;
+
             let newX = pos.x + direction.x * (animation === 'run' ? 4 : 1);
             let newY = pos.y + direction.y * (animation === 'run' ? 4 : 1);
 
             // Check horizontal boundaries
-            if (newX <= 0 || newX >= containerWidth) {
-              setDirection(dir => ({ ...dir, x: dir.x * -1 }));
-              newX = Math.max(0, Math.min(newX, containerWidth));
+            if (newX <= 0) {
+              setDirection((dir) => ({ ...dir, x: 1 }));
+              newX = 0;
+            } else if (newX + petWidth >= containerWidth) {
+              setDirection((dir) => ({ ...dir, x: -1 }));
+              newX = containerWidth - petWidth;
             }
 
             // Check vertical boundaries
-            if (newY <= 0 || newY >= containerHeight) {
-              setDirection(dir => ({ ...dir, y: dir.y * -1 }));
-              newY = Math.max(0, Math.min(newY, containerHeight));
+            if (newY <= 0) {
+              setDirection((dir) => ({ ...dir, y: 1 }));
+              newY = 0;
+            } else if (newY + petHeight >= containerHeight) {
+              setDirection((dir) => ({ ...dir, y: -1 }));
+              newY = containerHeight - petHeight;
             }
 
             // Randomly change direction to simulate wandering
@@ -206,12 +220,83 @@
           animationFrame = requestAnimationFrame(movePet);
         };
 
-        if (animation !== 'idle' && animation !== 'sleep') {
+        if (animation !== 'idle' && animation !== 'sleep' && !isDragging) {
           animationFrame = requestAnimationFrame(movePet);
         }
 
         return () => cancelAnimationFrame(animationFrame);
-      }, [animation, direction]);
+      }, [animation, direction, isDragging]);
+
+      // Drag-and-drop handlers
+      const handleMouseDown = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+        setDragStart({ x: e.clientX, y: e.clientY });
+      };
+
+      const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
+        setPosition((pos) => {
+          const containerWidth = containerRef.current.offsetWidth;
+          const containerHeight = containerRef.current.offsetHeight;
+          const newX = Math.max(0, Math.min(pos.x + dx, containerWidth - petWidth));
+          const newY = Math.max(0, Math.min(pos.y + dy, containerHeight - petHeight));
+          return { x: newX, y: newY };
+        });
+        setDragStart({ x: e.clientX, y: e.clientY });
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+      };
+
+      const handleTouchStart = (e) => {
+        setIsDragging(true);
+        const touch = e.touches[0];
+        setDragStart({ x: touch.clientX, y: touch.clientY });
+      };
+
+      const handleTouchMove = (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const dx = touch.clientX - dragStart.x;
+        const dy = touch.clientY - dragStart.y;
+        setPosition((pos) => {
+          const containerWidth = containerRef.current.offsetWidth;
+          const containerHeight = containerRef.current.offsetHeight;
+          const newX = Math.max(0, Math.min(pos.x + dx, containerWidth - petWidth));
+          const newY = Math.max(0, Math.min(pos.y + dy, containerHeight - petHeight));
+          return { x: newX, y: newY };
+        });
+        setDragStart({ x: touch.clientX, y: touch.clientY });
+      };
+
+      const handleTouchEnd = () => {
+        setIsDragging(false);
+      };
+
+      useEffect(() => {
+        if (isDragging) {
+          window.addEventListener('mousemove', handleMouseMove);
+          window.addEventListener('mouseup', handleMouseUp);
+          window.addEventListener('touchmove', handleTouchMove);
+          window.addEventListener('touchend', handleTouchEnd);
+        } else {
+          window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('mouseup', handleMouseUp);
+          window.removeEventListener('touchmove', handleTouchMove);
+          window.removeEventListener('touchend', handleTouchEnd);
+        }
+
+        return () => {
+          window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('mouseup', handleMouseUp);
+          window.removeEventListener('touchmove', handleTouchMove);
+          window.removeEventListener('touchend', handleTouchEnd);
+        };
+      }, [isDragging]);
 
       const safeSetGrid = (grid, x, y, value) => {
         if (y >= 0 && y < grid.length && x >= 0 && x < grid[0].length) {
@@ -238,7 +323,7 @@
         audio.play();
       };
 
-      const generatePet = (cellSize = 8) => {
+      const generatePet = () => {
         const width = 32;
         const height = 32;
         const grid = Array(height).fill().map(() => Array(width).fill(0));
@@ -481,6 +566,9 @@
 
         return (
           <svg
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            ref={petRef}
             viewBox={`0 0 ${width * cellSize} ${height * cellSize}`}
             width={width * cellSize}
             height={height * cellSize}
@@ -531,8 +619,8 @@
                 className="zzz"
                 style={{
                   position: 'absolute',
-                  left: position.x + 20, // Adjust as needed
-                  top: position.y - 30,  // Adjust as needed
+                  left: position.x + petWidth / 2 - 20,
+                  top: position.y - 30,
                 }}
               >
                 Zzz...
