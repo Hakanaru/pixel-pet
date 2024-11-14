@@ -48,7 +48,7 @@
       transform: translateX(-50%);
       width: 80%;
       padding: 1em;
-      font-size: 2rem;
+      font-size: 2.5rem;
       border: none;
       border-bottom: 2px solid #ccc;
       text-align: center;
@@ -70,7 +70,7 @@
     }
     .controls {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
       grid-auto-rows: 1fr;
       gap: 1em;
       padding: 1em;
@@ -85,7 +85,7 @@
       color: white;
       border-radius: 10px;
       cursor: pointer;
-      font-size: 2.5rem;
+      font-size: 2rem;
       transition: background-color 0.3s, transform 0.2s;
       width: 100%;
       height: 100%;
@@ -104,14 +104,14 @@
       cursor: not-allowed;
       box-shadow: none;
     }
-    /* Chore list styling */
-    .chore-list {
+    /* Modal styling */
+    .modal {
       position: absolute;
-      top: 5%;
+      top: 25%; /* Adjusted to be 20% lower */
       left: 50%;
       transform: translateX(-50%);
       width: 95%;
-      max-height: 90%;
+      max-height: 70%; /* Adjusted for new top position */
       overflow-y: auto;
       background: rgba(240, 248, 255, 0.95);
       padding: 1em;
@@ -119,10 +119,22 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       z-index: 1000;
     }
-    .chore-list h2 {
+    .modal h2 {
       text-align: center;
       margin-bottom: 1em;
+      font-size: 2.5rem;
+    }
+    .modal .close-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
       font-size: 2rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .modal .close-button:hover {
+      color: red;
     }
     .chore-form {
       margin-bottom: 1em;
@@ -188,15 +200,119 @@
       position: absolute;
       top: 2%;
       right: 2%;
-      font-size: 1.5rem;
+      font-size: 2rem;
       background: rgba(255, 255, 255, 0.7);
       padding: 0.5em 1em;
       border-radius: 5px;
     }
+    .progress-bar,
+    .hunger-bar {
+      position: absolute;
+      bottom: 2%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      height: 30px;
+      background-color: #ddd;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .progress-bar {
+      bottom: 5%; /* Slightly above hunger bar */
+    }
+    .progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745, #8bc34a);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .hunger-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #ff5722, #ffc107);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    /* Animation for chore completion */
+    .chore-complete-animation {
+      position: absolute;
+      font-size: 3rem;
+      color: #ffeb3b;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      animation: popUp 1s forwards;
+    }
+    @keyframes popUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+    }
+    /* Fix for pet movement artifacts */
+    svg {
+      position: absolute;
+      will-change: transform;
+    }
+    /* Additional styling for items and pets */
+    .inventory-item,
+    .pet-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5em;
+      padding: 0.5em;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 5px;
+    }
+    .inventory-item span,
+    .pet-item span {
+      font-size: 1.5rem;
+    }
+    .inventory-item button,
+    .pet-item button {
+      font-size: 1.5rem;
+      padding: 0.5em 1em;
+      margin-left: 0.5em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .inventory-item button.use {
+      background-color: #28a745;
+      color: white;
+    }
+    .inventory-item button.use:hover {
+      background-color: #218838;
+    }
+    .inventory-item button.discard {
+      background-color: #dc3545;
+      color: white;
+    }
+    .inventory-item button.discard:hover {
+      background-color: #c82333;
+    }
+    /* Poop styling */
+    .poop {
+      font-size: 8rem; /* Increased size */
+      position: absolute;
+      cursor: pointer;
+    }
+    /* Egg selection */
+    .egg-selection {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+    .egg-option {
+      cursor: pointer;
+    }
     /* Responsive styling */
     @media (max-width: 800px) {
       .pet-name-input {
-        font-size: 1.5rem;
+        font-size: 2rem;
       }
       .controls {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -204,20 +320,20 @@
       .controls button {
         font-size: 2rem;
       }
-      .chore-list {
+      .modal {
         width: 95%;
-        top: 5%;
+        top: 25%;
       }
     }
     @media (max-width: 500px) {
       .controls {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       }
       .controls button {
         font-size: 1.5rem;
       }
       .pet-name-input {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
       }
       .chore-form input,
       .chore-form select,
@@ -229,6 +345,9 @@
       }
       .chore-item button {
         font-size: 1.2rem;
+      }
+      .poop {
+        font-size: 6rem;
       }
     }
   </style>
@@ -258,6 +377,12 @@
       const [isBouncing, setIsBouncing] = useState(false);
       const [poops, setPoops] = useState([]);
       const [currency, setCurrency] = useState(0);
+      const [evolutionProgress, setEvolutionProgress] = useState(0);
+      const [completedDays, setCompletedDays] = useState(0);
+
+      // Hunger mechanic
+      const [hunger, setHunger] = useState(100); // Hunger bar percentage
+      const [neglectCounter, setNeglectCounter] = useState(0);
 
       // Chore-related states
       const [chores, setChores] = useState([]);
@@ -267,13 +392,37 @@
         name: '',
         frequency: 'daily',
         value: 1,
-        excludeDays: 'none', // 'weekdays', 'weekends', 'none'
+        excludeDays: 'none',
       });
-      const [choresInitialized, setChoresInitialized] = useState(false);
+      const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+
+      // Shop-related states
+      const [showShop, setShowShop] = useState(false);
+      const [inventory, setInventory] = useState({
+        food: 0,
+        progressionStone: 0,
+        petStone: 0,
+      });
+
+      // Items modal state
+      const [showItems, setShowItems] = useState(false);
+
+      // Tasks modal state
+      const [showTasks, setShowTasks] = useState(false);
+
+      // Pets modal state
+      const [showPets, setShowPets] = useState(false);
+      const [pets, setPets] = useState([]);
+      const [currentPetId, setCurrentPetId] = useState(null);
+
+      // Egg selection state
+      const [showEggSelection, setShowEggSelection] = useState(false);
+      const [eggOptions, setEggOptions] = useState([]);
+      const [selectedEgg, setSelectedEgg] = useState(null);
+      const [nameInput, setNameInput] = useState('');
 
       const evolutionStages = ['Egg', 'Child', 'Teen', 'Adult'];
-      const colorThemes = ['Classic', 'Pastel', 'Neon', 'Monochrome'];
-      const moods = ['happy', 'sad', 'sleepy', 'energetic'];
+      const moods = ['happy', 'sad', 'sleepy', 'energetic', 'hungry'];
 
       const containerRef = useRef(null);
       const petRef = useRef(null);
@@ -286,17 +435,69 @@
         document.body.className = mood;
       }, [mood]);
 
+      // Load data from localStorage
+      useEffect(() => {
+        const savedData = JSON.parse(localStorage.getItem('pixelPetData'));
+        if (savedData) {
+          setName(savedData.name);
+          setCurrency(savedData.currency);
+          setChores(savedData.chores);
+          setEvolutionProgress(savedData.evolutionProgress);
+          setEvolutionStage(savedData.evolutionStage);
+          setCompletedDays(savedData.completedDays);
+          setInventory(savedData.inventory);
+          setPets(savedData.pets);
+          setCurrentPetId(savedData.currentPetId);
+          setHunger(savedData.hunger || 100);
+          setNeglectCounter(savedData.neglectCounter || 0);
+        } else {
+          // If no pet exists, start egg selection
+          handleAdoptNewPet();
+        }
+      }, []);
+
+      // Save data to localStorage
+      useEffect(() => {
+        const dataToSave = {
+          name,
+          currency,
+          chores,
+          evolutionProgress,
+          evolutionStage,
+          completedDays,
+          inventory,
+          pets,
+          currentPetId,
+          hunger,
+          neglectCounter,
+        };
+        localStorage.setItem('pixelPetData', JSON.stringify(dataToSave));
+      }, [
+        name,
+        currency,
+        chores,
+        evolutionProgress,
+        evolutionStage,
+        completedDays,
+        inventory,
+        pets,
+        currentPetId,
+        hunger,
+        neglectCounter,
+      ]);
+
       // Cycle moods automatically
       useEffect(() => {
         const moodCycle = setInterval(() => {
-          setMood(prevMood => {
-            const nextMoodIndex = (moods.indexOf(prevMood) + 1) % moods.length;
-            return moods[nextMoodIndex];
-          });
-        }, 10000); // Change mood every 10 seconds
+          if (hunger < 20) {
+            setMood('hungry');
+          } else if (mood !== 'sleepy') {
+            setMood('happy');
+          }
+        }, 5000); // Check mood every 5 seconds
 
         return () => clearInterval(moodCycle);
-      }, []);
+      }, [hunger, mood]);
 
       useEffect(() => {
         const moodAnimations = {
@@ -304,6 +505,7 @@
           sad: 'idle',
           sleepy: 'sleep',
           energetic: 'run',
+          hungry: 'hungry',
         };
         setAnimation(moodAnimations[mood] || 'idle');
 
@@ -323,7 +525,7 @@
             const containerWidth = containerRef.current.offsetWidth;
             const containerHeight = containerRef.current.offsetHeight;
 
-            let speed = animation === 'run' ? 4 : 1;
+            let speed = animation === 'run' ? 4 : mood === 'hungry' ? 0.5 : 1;
             let newX = pos.x + direction.x * speed;
             let newY = pos.y + direction.y * speed;
 
@@ -359,12 +561,12 @@
           animationFrame = requestAnimationFrame(movePet);
         };
 
-        if (animation === 'wander' || animation === 'run') {
+        if (animation === 'wander' || animation === 'run' || mood === 'hungry') {
           animationFrame = requestAnimationFrame(movePet);
         }
 
         return () => cancelAnimationFrame(animationFrame);
-      }, [animation, direction]);
+      }, [animation, direction, mood]);
 
       // Egg shaking animation
       useEffect(() => {
@@ -380,65 +582,92 @@
 
       // Pooping mechanic
       useEffect(() => {
-        const poopInterval = setInterval(() => {
-          if (evolutionStage > 0) {
-            setPoops(prevPoops => [...prevPoops, generatePoop()]);
-          }
-        }, 15000); // Pet poops every 15 seconds
-
-        return () => clearInterval(poopInterval);
-      }, [evolutionStage, position]);
+        if (hunger >= 100) {
+          setPoops((prevPoops) => [...prevPoops, generatePoop()]);
+          setHunger(80); // Reduce hunger after pooping
+        }
+      }, [hunger]);
 
       const generatePoop = () => {
+        const safeY = position.y + petHeight + 10;
         return {
           id: Date.now() + Math.random(),
           x: position.x + petWidth / 2 + (Math.random() - 0.5) * 100,
-          y: position.y + petHeight - 20,
+          y: safeY > containerRef.current.offsetHeight - 50 ? containerRef.current.offsetHeight - 50 : safeY,
         };
       };
 
-      // Initialize daily chores after chore list is created
+      // Hunger decreases over time
       useEffect(() => {
-        if (chores.length > 0 && !choresInitialized) {
-          generateDailyChores();
-          setChoresInitialized(true);
-        }
-      }, [chores, choresInitialized]);
+        const hungerInterval = setInterval(() => {
+          setHunger((prevHunger) => {
+            const newHunger = prevHunger - 5;
+            if (newHunger <= 0) {
+              setNeglectCounter((prev) => prev + 1);
+              return 0;
+            }
+            return newHunger;
+          });
+        }, 10000); // Decrease hunger every 10 seconds
+
+        return () => clearInterval(hungerInterval);
+      }, []);
+
+      // Neglect effects
+      useEffect(() => {
+        const neglectInterval = setInterval(() => {
+          if (hunger <= 20 || poops.length > 0) {
+            setEvolutionProgress((prev) => prev - 5);
+            if (evolutionProgress <= 0 && evolutionStage > 0) {
+              setEvolutionStage((prev) => prev - 1);
+              setEvolutionProgress(100);
+            } else if (evolutionStage === 0 && neglectCounter >= 5) {
+              // Pet dies
+              setPets(pets.filter((pet) => pet.id !== currentPetId));
+              setCurrentPetId(null);
+              handleAdoptNewPet();
+            }
+          }
+        }, 15000); // Check neglect every 15 seconds
+
+        return () => clearInterval(neglectInterval);
+      }, [hunger, poops, evolutionProgress, evolutionStage, neglectCounter, pets, currentPetId]);
 
       // Function to generate daily chores
+      useEffect(() => {
+        generateDailyChores();
+      }, [chores]);
+
       const generateDailyChores = () => {
         const now = new Date();
         const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-        // Filter chores based on excludeDays
-        const availableChores = chores.filter(chore => {
+        // Filter chores based on excludeDays and frequency
+        const availableChores = chores.filter((chore) => {
           if (chore.excludeDays === 'weekends' && isWeekend) return false;
           if (chore.excludeDays === 'weekdays' && !isWeekend) return false;
-          return true;
+
+          // Handle frequency
+          const lastCompleted = new Date(chore.lastCompleted || 0);
+          const diffTime = Math.abs(now - lastCompleted);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          switch (chore.frequency) {
+            case 'daily':
+              return true;
+            case 'weekly':
+              return diffDays >= 7;
+            case 'bi-weekly':
+              return diffDays >= 14;
+            case 'monthly':
+              return diffDays >= 30;
+            default:
+              return true;
+          }
         });
 
-        // Sort chores by value
-        const lowValueChores = availableChores.filter(chore => chore.value <= 3);
-        const midValueChores = availableChores.filter(chore => chore.value > 3 && chore.value <= 6);
-        const highValueChores = availableChores.filter(chore => chore.value > 6);
-
-        // Randomly pick one from each category
-        const getRandomChore = (choreArray) => {
-          if (choreArray.length === 0) return null;
-          return choreArray[Math.floor(Math.random() * choreArray.length)];
-        };
-
-        const selectedChores = [];
-        const lowChore = getRandomChore(lowValueChores);
-        const midChore = getRandomChore(midValueChores);
-        const highChore = getRandomChore(highValueChores);
-
-        if (lowChore) selectedChores.push(lowChore);
-        if (midChore) selectedChores.push(midChore);
-        if (highChore) selectedChores.push(highChore);
-
-        setDailyChores(selectedChores);
+        setDailyChores(availableChores);
       };
 
       // Safe grid functions
@@ -458,7 +687,9 @@
       const generatePet = () => {
         const width = 32;
         const height = 32;
-        const grid = Array(height).fill().map(() => Array(width).fill(0));
+        const grid = Array(height)
+          .fill()
+          .map(() => Array(width).fill(0));
 
         let currentSeed = seed;
         const random = () => {
@@ -471,8 +702,12 @@
           const saturation = colorTheme === 3 ? '10%' : '70%';
           return {
             main: `hsl(${hue}, ${saturation}, ${50 + random() * 20}%)`,
-            accent: `hsl(${(hue + 30) % 360}, ${saturation}, ${50 + random() * 20}%)`,
-            detail: `hsl(${(hue + 60) % 360}, ${saturation}, ${50 + random() * 20}%)`
+            accent: `hsl(${(hue + 30) % 360}, ${saturation}, ${
+              50 + random() * 20
+            }%)`,
+            detail: `hsl(${(hue + 60) % 360}, ${saturation}, ${
+              50 + random() * 20
+            }%)`,
           };
         };
 
@@ -481,7 +716,7 @@
         const centerX = Math.floor(width / 2);
         const centerY = Math.floor(height / 2);
 
-        const bodySize = 0.5 + (evolutionStage * 0.1);
+        const bodySize = 0.5 + evolutionStage * 0.1;
         const bodyHeight = Math.floor(height * (bodySize + random() * 0.1));
         const bodyWidth = Math.floor(width * (bodySize + random() * 0.1));
         const bodyStartY = centerY - Math.floor(bodyHeight / 2);
@@ -500,8 +735,20 @@
         };
 
         // Generate body shape
-        const bodyShapes = ['oval', 'round', 'square', 'blob', 'triangle', 'star', 'diamond', 'heart'];
-        const bodyType = evolutionStage === 0 ? 'egg' : bodyShapes[Math.floor(random() * bodyShapes.length)];
+        const bodyShapes = [
+          'oval',
+          'round',
+          'square',
+          'blob',
+          'triangle',
+          'star',
+          'diamond',
+          'heart',
+        ];
+        const bodyType =
+          evolutionStage === 0
+            ? 'egg'
+            : bodyShapes[Math.floor(random() * bodyShapes.length)];
 
         // Draw body
         for (let y = 0; y < bodyHeight; y++) {
@@ -509,13 +756,18 @@
             let drawPixel = false;
             const nx = x - bodyWidth / 2;
             const ny = y - bodyHeight / 2;
-            switch(bodyType) {
+            switch (bodyType) {
               case 'egg':
               case 'oval':
-                drawPixel = (nx * nx) / ((bodyWidth / 2) ** 2) + (ny * ny) / ((bodyHeight / 2) ** 2) <= 1;
+                drawPixel =
+                  (nx * nx) / (bodyWidth / 2) ** 2 +
+                    (ny * ny) / (bodyHeight / 2) ** 2 <=
+                  1;
                 break;
               case 'round':
-                drawPixel = (nx * nx + ny * ny) <= (bodyWidth / 2) * (bodyHeight / 2) * 0.8;
+                drawPixel =
+                  nx * nx + ny * ny <=
+                  (bodyWidth / 2) * (bodyHeight / 2) * 0.8;
                 break;
               case 'square':
                 drawPixel = true;
@@ -527,7 +779,9 @@
                 drawPixel = ny >= Math.abs(nx) * (bodyHeight / bodyWidth);
                 break;
               case 'star':
-                drawPixel = (Math.abs(nx * ny) < (bodyWidth * bodyHeight) / 10) || (Math.abs(nx) + Math.abs(ny) < bodyWidth / 3);
+                drawPixel =
+                  Math.abs(nx * ny) < (bodyWidth * bodyHeight) / 10 ||
+                  Math.abs(nx) + Math.abs(ny) < bodyWidth / 3;
                 break;
               case 'diamond':
                 drawPixel = Math.abs(nx) + Math.abs(ny) <= bodyWidth / 2;
@@ -535,7 +789,8 @@
               case 'heart':
                 const a = nx / (bodyWidth / 2);
                 const b = ny / (bodyHeight / 2);
-                drawPixel = Math.pow(a * a + b * b - 1, 3) - a * a * b * b * b <= 0;
+                drawPixel =
+                  Math.pow(a * a + b * b - 1, 3) - a * a * b * b * b <= 0;
                 break;
             }
             if (drawPixel) {
@@ -553,7 +808,7 @@
           const eyeX2 = centerX + eyeSpacing;
 
           // Eyes
-          switch(features.eyeType) {
+          switch (features.eyeType) {
             case 0: // Normal eyes
               safeSetGrid(grid, eyeX1, faceY, 2);
               safeSetGrid(grid, eyeX2, faceY, 2);
@@ -578,7 +833,7 @@
 
           // Mouth
           const mouthY = faceY + 4;
-          switch(features.mouthType) {
+          switch (features.mouthType) {
             case 0: // Smile
               safeSetGrid(grid, centerX - 1, mouthY, 3);
               safeSetGrid(grid, centerX, mouthY + 1, 3);
@@ -602,7 +857,7 @@
 
           // Ears
           const earY = bodyStartY - 2;
-          switch(features.earType) {
+          switch (features.earType) {
             case 0: // Pointy ears
               safeSetGrid(grid, centerX - 3, earY, 1);
               safeSetGrid(grid, centerX + 3, earY, 1);
@@ -632,8 +887,18 @@
           // Wings
           if (features.hasWings) {
             for (let i = 0; i < 3; i++) {
-              safeSetGrid(grid, centerX - Math.floor(bodyWidth / 2) - i, centerY + i, 1);
-              safeSetGrid(grid, centerX + Math.floor(bodyWidth / 2) + i, centerY + i, 1);
+              safeSetGrid(
+                grid,
+                centerX - Math.floor(bodyWidth / 2) - i,
+                centerY + i,
+                1
+              );
+              safeSetGrid(
+                grid,
+                centerX + Math.floor(bodyWidth / 2) + i,
+                centerY + i,
+                1
+              );
             }
           }
 
@@ -647,7 +912,7 @@
           // Accessories
           if (features.accessory !== -1) {
             const accessoryY = bodyStartY - 4;
-            switch(features.accessory) {
+            switch (features.accessory) {
               case 0: // Hat
                 for (let x = -2; x <= 2; x++) {
                   safeSetGrid(grid, centerX + x, accessoryY, 4);
@@ -699,7 +964,9 @@
         return (
           <svg
             ref={petRef}
-            className={`${isShaking ? 'shake' : ''} ${isBouncing ? 'bounce' : ''}`}
+            className={`${isShaking ? 'shake' : ''} ${
+              isBouncing ? 'bounce' : ''
+            }`}
             viewBox={`0 0 ${width * cellSize} ${height * cellSize}`}
             width={width * cellSize}
             height={height * cellSize}
@@ -720,12 +987,17 @@
                     width={cellSize}
                     height={cellSize}
                     fill={
-                      cell === 1 ? colors.main :
-                      cell === 2 ? 'black' :
-                      cell === 3 ? 'black' :
-                      cell === 4 ? colors.accent :
-                      cell === 5 ? colors.detail :
-                      'black'
+                      cell === 1
+                        ? colors.main
+                        : cell === 2
+                        ? 'black'
+                        : cell === 3
+                        ? 'black'
+                        : cell === 4
+                        ? colors.accent
+                        : cell === 5
+                        ? colors.detail
+                        : 'black'
                     }
                   />
                 ) : null
@@ -741,23 +1013,196 @@
         let value = parseInt(newChore.value);
         if (value < 1) value = 1;
         if (value > 10) value = 10;
-        setChores([...chores, { ...newChore, value: value, id: Date.now(), lastCompleted: null }]);
-        setNewChore({ name: '', frequency: 'daily', value: 1, excludeDays: 'none' });
+        setChores([
+          ...chores,
+          { ...newChore, value: value, id: Date.now(), lastCompleted: null },
+        ]);
+        setNewChore({
+          name: '',
+          frequency: 'daily',
+          value: 1,
+          excludeDays: 'none',
+        });
       };
 
       // Handle completing a chore
       const handleCompleteChore = (choreId) => {
-        const chore = dailyChores.find(chore => chore.id === choreId);
+        const chore = dailyChores.find((chore) => chore.id === choreId);
         if (chore) {
-          setCurrency(currency + parseInt(chore.value));
-          setDailyChores(dailyChores.filter(chore => chore.id !== choreId));
+          const extraProgress = chore.value * 15; // Increased progression
+          setCurrency(currency + parseInt(chore.value) * 2); // Increased value
+          setDailyChores(dailyChores.filter((chore) => chore.id !== choreId));
+          setEvolutionProgress(evolutionProgress + extraProgress);
+          setShowCompletionAnimation(true);
+          setTimeout(() => setShowCompletionAnimation(false), 1000);
+          checkEvolution();
+          checkDailyCompletion();
+
+          // Update lastCompleted date
+          setChores(
+            chores.map((c) =>
+              c.id === chore.id ? { ...c, lastCompleted: new Date() } : c
+            )
+          );
+        }
+      };
+
+      // Handle completing a chore from the chore list
+      const handleCompleteChoreFromList = (choreId) => {
+        setChores(
+          chores.map((chore) =>
+            chore.id === choreId
+              ? { ...chore, lastCompleted: new Date() }
+              : chore
+          )
+        );
+        setEvolutionProgress(
+          evolutionProgress +
+            parseInt(chores.find((chore) => chore.id === choreId).value) * 10
+        );
+        setShowCompletionAnimation(true);
+        setTimeout(() => setShowCompletionAnimation(false), 1000);
+        checkEvolution();
+        checkDailyCompletion();
+      };
+
+      // Check for evolution
+      const checkEvolution = () => {
+        if (evolutionProgress >= 100 && evolutionStage < evolutionStages.length - 1) {
+          setEvolutionStage(evolutionStage + 1);
+          setEvolutionProgress(0);
+        }
+      };
+
+      // Check daily completion for egg evolution
+      const checkDailyCompletion = () => {
+        const today = new Date().toDateString();
+        const lastCompletionDate = localStorage.getItem('lastCompletionDate');
+        if (lastCompletionDate !== today) {
+          setCompletedDays(completedDays + 1);
+          localStorage.setItem('lastCompletionDate', today);
+        }
+        if (completedDays >= 2 && evolutionStage === 0) {
+          setEvolutionStage(1); // Evolve from egg after 2 days
         }
       };
 
       // Remove a chore
       const handleRemoveChore = (choreId) => {
-        setChores(chores.filter(chore => chore.id !== choreId));
+        setChores(chores.filter((chore) => chore.id !== choreId));
       };
+
+      // Handle Shop purchases
+      const handlePurchase = (item, quantity) => {
+        const itemCosts = {
+          food: 1,
+          progressionStone: 10,
+          petStone: 20,
+        };
+        const totalCost = itemCosts[item] * quantity;
+        if (currency >= totalCost) {
+          setCurrency(currency - totalCost);
+          setInventory({
+            ...inventory,
+            [item]: inventory[item] + quantity,
+          });
+        } else {
+          alert('Not enough currency!');
+        }
+      };
+
+      // Use Item
+      const handleUseItem = (item) => {
+        if (inventory[item] > 0) {
+          if (item === 'food') {
+            setMood('happy');
+            setHunger(hunger + 50 > 100 ? 100 : hunger + 50);
+          } else if (item === 'progressionStone') {
+            setEvolutionProgress(evolutionProgress + 20);
+            checkEvolution();
+          } else if (item === 'petStone') {
+            handleAdoptNewPet();
+          }
+          setInventory({
+            ...inventory,
+            [item]: inventory[item] - 1,
+          });
+        }
+      };
+
+      // Adopt a new pet
+      const handleAdoptNewPet = () => {
+        setShowEggSelection(true);
+        const eggs = [];
+        for (let i = 0; i < 3; i++) {
+          eggs.push({
+            id: Date.now() + i,
+            seed: Math.random() * 10000,
+            colorTheme: Math.floor(Math.random() * 4),
+          });
+        }
+        setEggOptions(eggs);
+      };
+
+      // Confirm adoption
+      const confirmAdoption = () => {
+        if (selectedEgg && nameInput.trim() !== '') {
+          const newPet = {
+            id: selectedEgg.id,
+            name: nameInput,
+            seed: selectedEgg.seed,
+            evolutionStage: 0,
+            evolutionProgress: 0,
+            mood: 'happy',
+            colorTheme: selectedEgg.colorTheme,
+          };
+          setPets([...pets, newPet]);
+          setCurrentPetId(newPet.id);
+          // Update pet states
+          setSeed(newPet.seed);
+          setEvolutionStage(newPet.evolutionStage);
+          setEvolutionProgress(newPet.evolutionProgress);
+          setMood(newPet.mood);
+          setColorTheme(newPet.colorTheme);
+          setName(newPet.name);
+          setShowEggSelection(false);
+          setNameInput('');
+          setSelectedEgg(null);
+        }
+      };
+
+      // Switch to a different pet
+      const switchPet = (petId) => {
+        const pet = pets.find((p) => p.id === petId);
+        if (pet) {
+          setCurrentPetId(petId);
+          setSeed(pet.seed);
+          setEvolutionStage(pet.evolutionStage);
+          setEvolutionProgress(pet.evolutionProgress);
+          setMood(pet.mood);
+          setColorTheme(pet.colorTheme);
+          setName(pet.name);
+        }
+      };
+
+      // Update current pet's data
+      useEffect(() => {
+        setPets(
+          pets.map((pet) =>
+            pet.id === currentPetId
+              ? {
+                  ...pet,
+                  name,
+                  seed,
+                  evolutionStage,
+                  evolutionProgress,
+                  mood,
+                  colorTheme,
+                }
+              : pet
+          )
+        );
+      }, [name, seed, evolutionStage, evolutionProgress, mood, colorTheme]);
 
       return (
         <div className="app-container">
@@ -765,12 +1210,10 @@
             <input
               placeholder="Name your pet"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               className="pet-name-input"
             />
-            <div className="currency-display">
-              Currency: {currency}
-            </div>
+            <div className="currency-display">Currency: {currency}</div>
             {generatePet()}
             {showZzz && (
               <div
@@ -779,44 +1222,82 @@
                   position: 'absolute',
                   left: position.x + petWidth / 2 - 20,
                   top: position.y - 30,
+                  fontSize: '2rem',
                 }}
               >
                 Zzz...
               </div>
             )}
             {/* Render poops */}
-            {poops.map(poop => (
+            {poops.map((poop) => (
               <div
                 key={poop.id}
                 className="poop"
                 style={{
-                  position: 'absolute',
                   left: poop.x,
                   top: poop.y,
-                  cursor: 'pointer',
                 }}
                 onClick={() => {
-                  setPoops(prevPoops => prevPoops.filter(p => p.id !== poop.id));
+                  setPoops((prevPoops) =>
+                    prevPoops.filter((p) => p.id !== poop.id)
+                  );
                 }}
               >
                 💩
               </div>
             ))}
+            {/* Progress Bar */}
+            <div className="progress-bar">
+              <div
+                className="progress-bar-inner"
+                style={{ width: `${evolutionProgress}%` }}
+              ></div>
+            </div>
+            {/* Hunger Bar */}
+            <div className="hunger-bar">
+              <div
+                className="hunger-bar-inner"
+                style={{ width: `${hunger}%` }}
+              ></div>
+            </div>
+            {/* Completion Animation */}
+            {showCompletionAnimation && (
+              <div
+                className="chore-complete-animation"
+                style={{
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
+                + Points!
+              </div>
+            )}
             {/* Chore List */}
             {showChoreList && (
-              <div className="chore-list">
+              <div className="modal">
                 <h2>Chore List</h2>
+                <button
+                  className="close-button"
+                  onClick={() => setShowChoreList(false)}
+                >
+                  &times;
+                </button>
                 {/* Add Chore Form */}
                 <div className="chore-form">
                   <input
                     type="text"
                     placeholder="Chore Name"
                     value={newChore.name}
-                    onChange={e => setNewChore({ ...newChore, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewChore({ ...newChore, name: e.target.value })
+                    }
                   />
                   <select
                     value={newChore.frequency}
-                    onChange={e => setNewChore({ ...newChore, frequency: e.target.value })}
+                    onChange={(e) =>
+                      setNewChore({ ...newChore, frequency: e.target.value })
+                    }
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -829,7 +1310,7 @@
                     value={newChore.value}
                     min="1"
                     max="10"
-                    onChange={e => {
+                    onChange={(e) => {
                       let value = parseInt(e.target.value);
                       if (value > 10) value = 10;
                       if (value < 1) value = 1;
@@ -838,34 +1319,60 @@
                   />
                   <select
                     value={newChore.excludeDays}
-                    onChange={e => setNewChore({ ...newChore, excludeDays: e.target.value })}
+                    onChange={(e) =>
+                      setNewChore({ ...newChore, excludeDays: e.target.value })
+                    }
                   >
                     <option value="none">Every Day</option>
                     <option value="weekends">Exclude Weekends</option>
                     <option value="weekdays">Exclude Weekdays</option>
                   </select>
-                  <button onClick={handleAddChore}>
-                    Add Chore
-                  </button>
+                  <button onClick={handleAddChore}>Add Chore</button>
                 </div>
                 {/* Chore List Items */}
-                {chores.map(chore => (
+                {chores.map((chore) => (
                   <div key={chore.id} className="chore-item">
-                    <span>{chore.name} ({chore.frequency}) - {chore.value} pts</span>
-                    <button className="remove" onClick={() => handleRemoveChore(chore.id)}>Remove</button>
+                    <span>
+                      {chore.name} ({chore.frequency}) - {chore.value} pts
+                    </span>
+                    <button
+                      className="complete"
+                      onClick={() => handleCompleteChoreFromList(chore.id)}
+                    >
+                      Complete
+                    </button>
+                    <button
+                      className="remove"
+                      onClick={() => handleRemoveChore(chore.id)}
+                    >
+                      Remove
+                    </button>
                   </div>
                 ))}
               </div>
             )}
-            {/* Daily Chores */}
-            {!showChoreList && choresInitialized && (
-              <div className="chore-list">
-                <h2>Today's Tasks</h2>
+            {/* Tasks Modal */}
+            {showTasks && (
+              <div className="modal">
+                <h2>Daily Tasks</h2>
+                <button
+                  className="close-button"
+                  onClick={() => setShowTasks(false)}
+                >
+                  &times;
+                </button>
                 {dailyChores.length > 0 ? (
-                  dailyChores.map(chore => (
+                  dailyChores.map((chore) => (
                     <div key={chore.id} className="chore-item">
-                      <span>{chore.name} - {chore.value} pts</span>
-                      <button className="complete" onClick={() => handleCompleteChore(chore.id)}>Done</button>
+                      <span>
+                        {chore.name} - {chore.value * 2} pts
+                      </span>
+                      <button
+                        className="complete"
+                        onClick={() => handleCompleteChore(chore.id)}
+                      >
+                        Done
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -873,17 +1380,241 @@
                 )}
               </div>
             )}
+            {/* Shop Modal */}
+            {showShop && (
+              <div className="modal">
+                <h2>Shop</h2>
+                <button
+                  className="close-button"
+                  onClick={() => setShowShop(false)}
+                >
+                  &times;
+                </button>
+                {['food', 'progressionStone', 'petStone'].map((item) => (
+                  <div key={item} className="chore-item">
+                    <span>
+                      {item === 'food'
+                        ? 'Food'
+                        : item === 'progressionStone'
+                        ? 'Progression Stone'
+                        : 'Pet Stone'}{' '}
+                      -{' '}
+                      {item === 'food' ? 1 : item === 'progressionStone' ? 10 : 20}{' '}
+                      pts each
+                    </span>
+                    <input
+                      type="number"
+                      min="1"
+                      defaultValue="1"
+                      style={{ width: '60px', fontSize: '1.5rem' }}
+                      id={`quantity-${item}`}
+                    />
+                    <button
+                      className="complete"
+                      onClick={() =>
+                        handlePurchase(
+                          item,
+                          parseInt(
+                            document.getElementById(`quantity-${item}`).value
+                          )
+                        )
+                      }
+                    >
+                      Buy
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Items Modal */}
+            {showItems && (
+              <div className="modal">
+                <h2>Inventory</h2>
+                <button
+                  className="close-button"
+                  onClick={() => setShowItems(false)}
+                >
+                  &times;
+                </button>
+                {Object.keys(inventory).map((item) => (
+                  <div key={item} className="inventory-item">
+                    <span>
+                      {item === 'food'
+                        ? 'Food'
+                        : item === 'progressionStone'
+                        ? 'Progression Stone'
+                        : 'Pet Stone'}{' '}
+                      - {inventory[item]}
+                    </span>
+                    <button
+                      className="use"
+                      onClick={() => handleUseItem(item)}
+                    >
+                      Use
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Pets Modal */}
+            {showPets && (
+              <div className="modal">
+                <h2>Your Pets</h2>
+                <button
+                  className="close-button"
+                  onClick={() => setShowPets(false)}
+                >
+                  &times;
+                </button>
+                {pets.map((pet) => (
+                  <div key={pet.id} className="pet-item">
+                    <span>{pet.name}</span>
+                    <button
+                      className="use"
+                      onClick={() => switchPet(pet.id)}
+                      disabled={pet.id === currentPetId}
+                    >
+                      {pet.id === currentPetId ? 'Current' : 'Switch'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Egg Selection Modal */}
+            {showEggSelection && (
+              <div className="modal">
+                <h2>Select an Egg</h2>
+                <div className="egg-selection">
+                  {eggOptions.map((egg) => (
+                    <div
+                      key={egg.id}
+                      className="egg-option"
+                      onClick={() => setSelectedEgg(egg)}
+                    >
+                      {generateEgg(egg)}
+                    </div>
+                  ))}
+                </div>
+                {selectedEgg && (
+                  <div style={{ marginTop: '1em' }}>
+                    <input
+                      type="text"
+                      placeholder="Name your pet"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      style={{ fontSize: '1.5rem', width: '100%', padding: '0.5em' }}
+                    />
+                    <button
+                      onClick={confirmAdoption}
+                      style={{ fontSize: '1.5rem', width: '100%', padding: '0.5em', marginTop: '0.5em' }}
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="controls-area">
             <div className="controls">
-              <button>Pets</button>
-              <button>Shop</button>
+              <button onClick={() => setShowPets(!showPets)}>Pets</button>
+              <button onClick={() => setShowShop(!showShop)}>Shop</button>
               <button onClick={() => setShowChoreList(!showChoreList)}>Chores</button>
-              <button>Items</button>
+              <button onClick={() => setShowItems(!showItems)}>Items</button>
+              <button onClick={() => setShowTasks(!showTasks)}>Tasks</button>
             </div>
           </div>
         </div>
       );
+
+      function generateEgg(egg) {
+        const width = 32;
+        const height = 32;
+        const grid = Array(height)
+          .fill()
+          .map(() => Array(width).fill(0));
+
+        let currentSeed = egg.seed;
+        const random = () => {
+          const x = Math.sin(currentSeed++) * 10000;
+          return x - Math.floor(x);
+        };
+
+        const getColors = () => {
+          const hue = (egg.colorTheme * 90 + random() * 60) % 360;
+          const saturation = egg.colorTheme === 3 ? '10%' : '70%';
+          return {
+            main: `hsl(${hue}, ${saturation}, ${50 + random() * 20}%)`,
+            accent: `hsl(${(hue + 30) % 360}, ${saturation}, ${
+              50 + random() * 20
+            }%)`,
+            detail: `hsl(${(hue + 60) % 360}, ${saturation}, ${
+              50 + random() * 20
+            }%)`,
+          };
+        };
+
+        const colors = getColors();
+
+        const centerX = Math.floor(width / 2);
+        const centerY = Math.floor(height / 2);
+
+        const bodyHeight = Math.floor(height * 0.5);
+        const bodyWidth = Math.floor(width * 0.5);
+        const bodyStartY = centerY - Math.floor(bodyHeight / 2);
+        const bodyStartX = centerX - Math.floor(bodyWidth / 2);
+
+        // Draw egg shape
+        for (let y = 0; y < bodyHeight; y++) {
+          for (let x = 0; x < bodyWidth; x++) {
+            let drawPixel = false;
+            const nx = x - bodyWidth / 2;
+            const ny = y - bodyHeight / 2;
+            drawPixel =
+              (nx * nx) / (bodyWidth / 2) ** 2 +
+                (ny * ny) / (bodyHeight / 2) ** 2 <=
+              1;
+            if (drawPixel) {
+              safeSetGrid(grid, bodyStartX + x, bodyStartY + y, 1);
+            }
+          }
+        }
+
+        return (
+          <svg
+            viewBox={`0 0 ${width * cellSize} ${height * cellSize}`}
+            width={width * cellSize}
+            height={height * cellSize}
+          >
+            {grid.map((row, y) =>
+              row.map((cell, x) =>
+                cell ? (
+                  <rect
+                    key={`${x}-${y}`}
+                    x={x * cellSize}
+                    y={y * cellSize}
+                    width={cellSize}
+                    height={cellSize}
+                    fill={
+                      cell === 1
+                        ? colors.main
+                        : cell === 2
+                        ? 'black'
+                        : cell === 3
+                        ? 'black'
+                        : cell === 4
+                        ? colors.accent
+                        : cell === 5
+                        ? colors.detail
+                        : 'black'
+                    }
+                  />
+                ) : null
+              )
+            )}
+          </svg>
+        );
+      }
     }
 
     // Render the component
