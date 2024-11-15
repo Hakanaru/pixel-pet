@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Pixel Pet with Chores</title>
   <style>
-    /* Reset and basic styling */
+    /* Reset and Basic Styling */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -104,14 +104,14 @@
       cursor: not-allowed;
       box-shadow: none;
     }
-    /* Modal styling */
+    /* Modal Styling */
     .modal {
       position: absolute;
-      top: 25%; /* Adjusted to be 20% lower */
+      top: 25%; /* Original position */
       left: 50%;
       transform: translateX(-50%);
       width: 95%;
-      max-height: 70%; /* Adjusted for new top position */
+      max-height: 70%; /* Original max height */
       overflow-y: auto;
       background: rgba(240, 248, 255, 0.95);
       padding: 1em;
@@ -119,6 +119,42 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       z-index: 1000;
     }
+
+    /* Dedicated Egg Modal Styling */
+    .egg-modal {
+      top: 10%; /* Moves the modal higher */
+      max-height: 85%; /* Increases the maximum height */
+      width: 90%; /* Adjusts the width */
+      padding: 1.5em; /* Optional: Increase padding for better spacing */
+    }
+
+    /* Grid Layout for Egg Selection */
+    .egg-selection {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 1em; /* Adds space between egg options */
+      margin-bottom: 1em;
+    }
+
+    .egg-option {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      transition: border-color 0.3s;
+    }
+
+    .egg-option:hover {
+      border-color: #007BFF;
+    }
+
+    .egg-option svg {
+      width: 80px; /* Adjusts the size of the egg */
+      height: 80px;
+    }
+
     .modal h2 {
       text-align: center;
       margin-bottom: 1em;
@@ -294,22 +330,36 @@
     .inventory-item button.discard:hover {
       background-color: #c82333;
     }
-    /* Poop styling */
+    /* Poop Styling */
     .poop {
       font-size: 8rem; /* Increased size */
       position: absolute;
       cursor: pointer;
     }
-    /* Egg selection */
+    /* Egg Selection Grid */
     .egg-selection {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 1em; /* Adds space between egg options */
+      margin-bottom: 1em;
     }
     .egg-option {
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      transition: border-color 0.3s;
     }
-    /* Responsive styling */
+    .egg-option:hover {
+      border-color: #007BFF;
+    }
+    .egg-option svg {
+      width: 80px; /* Adjusts the size of the egg */
+      height: 80px;
+    }
+    /* Responsive Styling */
     @media (max-width: 800px) {
       .pet-name-input {
         font-size: 2rem;
@@ -323,6 +373,10 @@
       .modal {
         width: 95%;
         top: 25%;
+      }
+      .egg-modal {
+        width: 95%;
+        top: 10%;
       }
     }
     @media (max-width: 500px) {
@@ -349,6 +403,15 @@
       .poop {
         font-size: 6rem;
       }
+      /* Adjust Egg Modal in very small screens */
+      .egg-modal {
+        width: 95%;
+        top: 10%;
+      }
+      .egg-option svg {
+        width: 60px;
+        height: 60px;
+      }
     }
   </style>
 </head>
@@ -359,7 +422,7 @@
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
   <!-- Include Babel for JSX transpilation -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Our script -->
+  <!-- Our Script -->
   <script type="text/babel">
     function PixelPet() {
       const { useState, useEffect, useRef } = React;
@@ -1228,7 +1291,7 @@
                 Zzz...
               </div>
             )}
-            {/* Render poops */}
+            {/* Render Poops */}
             {poops.map((poop) => (
               <div
                 key={poop.id}
@@ -1273,7 +1336,7 @@
                 + Points!
               </div>
             )}
-            {/* Chore List */}
+            {/* Chore List Modal */}
             {showChoreList && (
               <div className="modal">
                 <h2>Chore List</h2>
@@ -1482,7 +1545,7 @@
             )}
             {/* Egg Selection Modal */}
             {showEggSelection && (
-              <div className="modal">
+              <div className="modal egg-modal"> {/* Applied 'egg-modal' class */}
                 <h2>Select an Egg</h2>
                 <div className="egg-selection">
                   {eggOptions.map((egg) => (
